@@ -144,60 +144,54 @@ public class SparkJobParseBolt extends BaseRichBolt {
     }
 
     private List<String> getAttemptLogNameList(String appId, FileSystem hdfs, Set<String> inprogressSet)
-                                                        throws IOException {
+            throws IOException {
         List<String> attempts = new ArrayList<String>();
-        try {
-            SparkApplication app = null;
-            /*try {
-                List apps = this.historyServerFetcher.getResource(Constants.ResourceType.SPARK_JOB_DETAIL, appId);
-                if (apps != null) {
-                    app = (SparkApplication) apps.get(0);
-                    attempts = app.getAttempts();
-                }
-            } catch (Exception e) {
-                LOG.warn("Fail to get application detail from history server for appId " + appId, e);
-            }*/
-
-
-            if (null == app) {
-                // history server may not have the info, just double check.
-                // TODO: if attemptId is not "1, 2, 3,...", we should change the logic.
-                // attemptId might be: "appId_000001"
-                int attemptId = 0;
-
-                boolean exists = true;
-                while (exists) {
-                    String attemptIdString = Integer.toString(attemptId);
-                    String appAttemptLogName = this.getAppAttemptLogName(appId, attemptIdString);
-                    LOG.info("Attempt ID: {}, App Attempt Log: {}", attemptIdString, appAttemptLogName);
-
-                    String extension = "";
-                    Path attemptFile = getFilePath(appAttemptLogName, extension);
-                    extension = ".inprogress";
-                    Path inprogressFile = getFilePath(appAttemptLogName, extension);
-                    Path logFile = null;
-                    // Check if history log exists.
-                    if (hdfs.exists(attemptFile)) {
-                        logFile = attemptFile;
-                    } else if (hdfs.exists(inprogressFile)) {
-                        logFile = inprogressFile;
-                        inprogressSet.add(appAttemptLogName);
-                    } else if (attemptId > 0) {
-                        exists = false;
-                    }
-
-                    if (logFile != null) {
-                        attempts.add(appAttemptLogName);
-                    }
-                    attemptId++;
-                }
+        SparkApplication app = null;
+        /*try {
+            List apps = this.historyServerFetcher.getResource(Constants.ResourceType.SPARK_JOB_DETAIL, appId);
+            if (apps != null) {
+                app = (SparkApplication) apps.get(0);
+                attempts = app.getAttempts();
             }
-            return attempts;
-        } finally {
-            if (null != hdfs) {
-                hdfs.close();
+        } catch (Exception e) {
+            LOG.warn("Fail to get application detail from history server for appId " + appId, e);
+        }*/
+
+
+        if (null == app) {
+            // history server may not have the info, just double check.
+            // TODO: if attemptId is not "1, 2, 3,...", we should change the logic.
+            // attemptId might be: "appId_000001"
+            int attemptId = 0;
+
+            boolean exists = true;
+            while (exists) {
+                String attemptIdString = Integer.toString(attemptId);
+                String appAttemptLogName = this.getAppAttemptLogName(appId, attemptIdString);
+                LOG.info("Attempt ID: {}, App Attempt Log: {}", attemptIdString, appAttemptLogName);
+
+                String extension = "";
+                Path attemptFile = getFilePath(appAttemptLogName, extension);
+                extension = ".inprogress";
+                Path inprogressFile = getFilePath(appAttemptLogName, extension);
+                Path logFile = null;
+                // Check if history log exists.
+                if (hdfs.exists(attemptFile)) {
+                    logFile = attemptFile;
+                } else if (hdfs.exists(inprogressFile)) {
+                    logFile = inprogressFile;
+                    inprogressSet.add(appAttemptLogName);
+                } else if (attemptId > 0) {
+                    exists = false;
+                }
+
+                if (logFile != null) {
+                    attempts.add(appAttemptLogName);
+                }
+                attemptId++;
             }
         }
+        return attempts;
     }
 
     @Override
