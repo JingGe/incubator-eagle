@@ -22,6 +22,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppInfo {
+    private static final long serialVersionUID = 1L;
+
 	String id;
 	String user;
 	String name;
