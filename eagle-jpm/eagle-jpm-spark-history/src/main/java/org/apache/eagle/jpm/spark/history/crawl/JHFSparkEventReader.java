@@ -142,11 +142,7 @@ public class JHFSparkEventReader {
 
 
     private boolean isClientMode(JobConfig config) {
-        if (config.getConfig().get("spark.master").equalsIgnoreCase("yarn-client")) {
-            return true;
-        } else {
-            return false;
-        }
+        return config.getConfig().get("spark.master").equalsIgnoreCase("yarn-client");
     }
 
 
@@ -379,7 +375,13 @@ public class JHFSparkEventReader {
     private void handleJobEnd(JSONObject event) {
         Integer jobId = JSONUtil.getInt(event, "Job ID");
         SparkJob job = jobs.get(jobId);
-        job.setCompletionTime(JSONUtil.getLong(event, "Completion Time"));
+
+        long completionTime = JSONUtil.getLong(event, "Completion Time");
+        job.setCompletionTime(completionTime);
+        // If app end time is not available due to being killed,
+        // we set completion time of the last job for app end time.
+        app.setEndTime(completionTime);
+
         JSONObject jobResult = JSONUtil.getJSONObject(event, "Job Result");
         String result = JSONUtil.getString(jobResult, "Result");
         if (result.equalsIgnoreCase("JobSucceeded")) {
@@ -387,7 +389,6 @@ public class JHFSparkEventReader {
         } else {
             job.setStatus(SparkEntityConstant.SPARK_JOB_STATUS.FAILED.toString());
         }
-
     }
 
     private void handleAppEnd(JSONObject event) {
